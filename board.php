@@ -50,12 +50,13 @@ error_reporting(E_ALL); //すべてのエラーを出力する
   引数　 : タイトル,コメント,投稿者名
   戻り値 : なし
   ======================================= */
-  function insert_comment($comment) {
+  function insert_comment($comment,$image) {
     global $pdo;
     $now_date = new DateTime();
     $now_date = $now_date->format('Y-m-d H:i:s');
-    $stmt = $pdo->prepare("INSERT INTO comment (comment,create_date) VALUES(:comment,:now_date)");
+    $stmt = $pdo->prepare("INSERT INTO comment (comment,image,create_date) VALUES(:comment,:image,:now_date)");
     $stmt->bindValue(':comment', $comment);
+    $stmt->bindValue(':image', $image);
     $stmt->bindValue(':now_date', $now_date);
     $stmt->execute();
   }
@@ -79,12 +80,47 @@ error_reporting(E_ALL); //すべてのエラーを出力する
 <body>
 
 <?php
-if(isset($_POST['comment'])){
-  $comment = $_POST['comment'];
+$comment = '';
+$image = '';
+
+if(!empty($_POST)){
+  var_dump($_POST);
+  //if(isset($_POST['comment']) && $_POST['comment'] !== ''){
+  if(!empty($_POST['comment'])){
+    $comment = $_POST['comment'];
+  }
+  if(!empty($_FILES['image_file']['name'])){
+    try {
+      if (is_uploaded_file ( $_FILES ['image_file'] ['tmp_name'] )) {
+      // ファイル名に一意性を持たせる
+      //************** 画像の拡張子以外は受け付けない方法は？
+      $image = uniqid();
+      switch (exif_imagetype ( $_FILES['image_file']['tmp_name'])) {
+        case IMAGETYPE_JPEG :
+            $image .= '.jpg';
+            break;
+        case IMAGETYPE_GIF :
+            $image .= '.gif';
+            break;
+        case IMAGETYPE_PNG :
+            $image .= '.png';
+            break;
+        default :
+            header ( 'Location: board.php' );
+            exit ();
+      }
+      // ファイルを一時フォルダから指定したディレクトリに移動
+      move_uploaded_file($_FILES['image_file']['tmp_name'], 'upload/'. $image);
+      }
+    } catch (PDOException $e) {
+      // エラー発生時
+      exit("アップロードに失敗しました");
+    }
+  }
 
   $pdo = db_connect();
   try{ //コメント投稿があればデータベースへ登録する
-    insert_comment($comment);
+    insert_comment($comment,$image);
   } catch (PDOException $e) {
     // エラー発生時
     exit("登録に失敗しました");
@@ -102,6 +138,17 @@ if(isset($_POST['comment'])){
     <label for="InputComment">コメント</label>
     <textarea class="form-control" name="comment" id="InputComment" rows="3" placeholder="コメントを入力してください"></textarea>
     <small class="text-muted">※コメントは1000字以内で書いてください</small>
+  </div>
+  <div class="form-group">
+    <div class="input-group">
+      <div class="custom-file">
+          <input type="file" name="image_file" class="custom-file-input" id="customFile">
+          <label class="custom-file-label" for="customFile" data-browse="参照">ファイル選択...</label>
+      </div>
+      <div class="input-group-append">
+          <button type="button" class="btn btn-outline-secondary reset">取消</button>
+      </div>
+    </div>
   </div>
   <button type="submit" class="btn btn-primary">投稿する</button>
 </form>
@@ -135,6 +182,16 @@ if(isset($_POST['comment'])){
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+    $('.custom-file-input').on('change',function(){
+        $(this).next('.custom-file-label').html($(this)[0].files[0].name);
+    })
+    //ファイルの取消
+    $('.reset').click(function(){
+        $(this).parent().prev().children('.custom-file-label').html('ファイル選択...');
+        $('.custom-file-input').val('');
+    })
+    </script>
 </body>
  
 </html>

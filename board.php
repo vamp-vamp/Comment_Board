@@ -47,13 +47,13 @@ error_reporting(E_ALL); //すべてのエラーを出力する
   引数　 : 商品タイトル,商品コメント
   戻り値 : なし
   ======================================= */
-  function insert_product_comment($product_comment,$image) {
+  function insert_product_comment($product_comment,$product_comment_image) {
     global $pdo;
     $now_date = new DateTime();
     $now_date = $now_date->format('Y-m-d H:i:s');
-    $stmt = $pdo->prepare("INSERT INTO comment (comment,image,create_date) VALUES(:product_comment,:image,:now_date)");
+    $stmt = $pdo->prepare("INSERT INTO comment (comment,image,create_date) VALUES(:product_comment,:product_comment_image,:now_date)");
     $stmt->bindValue(':product_comment', $product_comment);
-    $stmt->bindValue(':image', $image);
+    $stmt->bindValue(':product_comment_image', $product_comment_image);
     $stmt->bindValue(':now_date', $now_date);
     $stmt->execute();
   }
@@ -78,7 +78,7 @@ error_reporting(E_ALL); //すべてのエラーを出力する
 
 <?php
 $product_comment = '';
-$image = '';
+$product_comment_image = '';
 
 if(!empty($_POST)){
   var_dump($_POST);
@@ -88,23 +88,23 @@ if(!empty($_POST)){
   if(!empty($_FILES['image_file']['name'])){
     try {
       if (is_uploaded_file ( $_FILES ['image_file'] ['tmp_name'] )) {
-      $image = uniqid();
+      $product_comment_image = uniqid();
       switch (exif_imagetype ( $_FILES['image_file']['tmp_name'])) {
         case IMAGETYPE_JPEG :
-            $image .= '.jpg';
+            $product_comment_image .= '.jpg';
             break;
         case IMAGETYPE_GIF :
-            $image .= '.gif';
+            $product_comment_image .= '.gif';
             break;
         case IMAGETYPE_PNG :
-            $image .= '.png';
+            $product_comment_image .= '.png';
             break;
         default :
             header ( 'Location: board.php' );
             exit ();
       }
       // ファイルを一時フォルダから指定したディレクトリに移動
-      move_uploaded_file($_FILES['image_file']['tmp_name'], 'upload/'. $image);
+      move_uploaded_file($_FILES['image_file']['tmp_name'], 'upload/'. $product_comment_image);
       }
     } catch (PDOException $e) {
       exit("アップロードに失敗しました");
@@ -113,7 +113,7 @@ if(!empty($_POST)){
 
   $pdo = db_connect();
   try{ //コメント投稿があればデータベースへ登録する
-    insert_product_comment($product_comment,$image);
+    insert_product_comment($product_comment,$product_comment_image);
   } catch (PDOException $e) {
     exit("登録に失敗しました");
   }

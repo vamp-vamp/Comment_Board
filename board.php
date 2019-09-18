@@ -3,61 +3,9 @@
 ini_set("display_errors", 1); //エラーを画面に表示
 error_reporting(E_ALL); //すべてのエラーを出力する
 
-// commonファイル
-  // データベース接続を確立
-  function db_connect(){
-    // 設定値定義
-    $db_host = "localhost"; // データベースのホスト
-    $db_name = "board"; // データベースの名前
-    $db_user = "root"; // データベース接続ユーザー
-    $db_pass = "vagrant"; // データベース接続パスワード
-
-      try{
-        $pdo = new PDO("mysql:host={$db_host};dbname={$db_name};charset=utf8", $db_user, $db_pass);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // エラーモードの設定 レポートを表示
-        $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false); // prepareのエミュレーションを停止
-        return $pdo;
-      } catch (PDOException $e) {
-        // エラー発生時
-        exit("データベースの接続に失敗しました");
-      }
-  }
-
-//functionsファイル
-  // htmlentitiesのショートカット関数
-  function he($str){
-      return htmlentities($str, ENT_QUOTES, "UTF-8");
-  }
-
-//データアクセスオブジェクト(関数?)ファイル
-  /* =======================================
-  機能　 : 商品コメント一覧を取得
-  引数　 : なし
-  戻り値 : 商品コメントレコードの配列
-  ======================================= */
-  function get_all_product_comment() {
-    global $pdo;
-    $stmt = $pdo->query("SELECT * FROM comment");
-    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    return $result;
-  }
-
-  /* =======================================
-  機能　 : 商品コメントテーブルにレコードを追加
-  引数　 : 商品タイトル,商品コメント
-  戻り値 : なし
-  ======================================= */
-  function insert_product_comment($product_comment,$product_comment_image) {
-    global $pdo;
-    $now_date = new DateTime();
-    $now_date = $now_date->format('Y-m-d H:i:s');
-    $stmt = $pdo->prepare("INSERT INTO comment (comment,image,create_date) VALUES(:product_comment,:product_comment_image,:now_date)");
-    $stmt->bindValue(':product_comment', $product_comment);
-    $stmt->bindValue(':product_comment_image', $product_comment_image);
-    $stmt->bindValue(':now_date', $now_date);
-    $stmt->execute();
-  }
-
+require_once('functions.php');
+require_once('db.php');
+require_once('dao/product_comment.php');
 ?>
 
 <!doctype html>

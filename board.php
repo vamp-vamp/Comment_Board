@@ -37,7 +37,7 @@ if(!empty($_POST)){
   //どちらもない場合はエラー
 
     //POSTされたデータを変数に入れる
-	  $product_comment = isset($_POST['product_comment']) ? $_POST['product_comment'] : NULL;
+    $product_comment = isset($_POST['product_comment']) ? $_POST['product_comment'] : NULL;
 
     //前後にある半角全角スペースを削除
     $product_comment = spaceTrim($product_comment);

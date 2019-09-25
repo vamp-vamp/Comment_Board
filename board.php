@@ -38,18 +38,17 @@ if(!empty($_POST)){
 
     //POSTされたデータを変数に入れる
 	  $product_comment = isset($_POST['product_comment']) ? $_POST['product_comment'] : NULL;
-    //$product_comment = $_POST['product_comment'];
 
     //前後にある半角全角スペースを削除
     $product_comment = spaceTrim($product_comment);
 
     //入力判定
-    if ($product_comment == ''){
+    if (empty($product_comment)) {
       //画像アップロードされていなかった場合
       if(empty($_FILES['image_file']['name'])){
         $errors['product_comment_none'] = "コメントが入力されていません。";
       }
-    }elseif(mb_strlen($product_comment)>1000){
+    }elseif(mb_strlen($product_comment) > 1000){
       $errors['product_comment_length'] = "コメントは1000文字以内で入力して下さい。";
     }
   
@@ -67,11 +66,14 @@ if(!empty($_POST)){
               break;
           case UPLOAD_ERR_NO_FILE:   // ファイル未選択
               exit("ファイルが選択されていません");
+              break;
           case UPLOAD_ERR_INI_SIZE:  // php.ini定義の最大サイズ超過
           case UPLOAD_ERR_FORM_SIZE: // フォーム定義の最大サイズ超過 (フォームで設定した場合のみ)
               exit("画像のファイルサイズは2MBまでです");
+              break;
           default:
               exit("その他のエラーが発生しました");
+              break;
         }
 
       //ここで定義するサイズ上限のオーバーチェック
@@ -92,6 +94,7 @@ if(!empty($_POST)){
             break;
         default :
             exit("アップロード可能なファイルは[jpeg] [png] [gif]のみです。");
+            break;
       }
 
       //ファイルを一時フォルダから指定したディレクトリに移動
